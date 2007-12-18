@@ -34,6 +34,9 @@ from reportlab.lib.units import cm
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.pagesizes import A4 as pagesize
 
+import locale
+locale.setlocale(locale.LC_ALL, '');
+
 options = None
 FILETYPES = ('gif', 'jpg', 'jpeg', 'png')
 
