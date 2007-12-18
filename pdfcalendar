@@ -26,87 +26,135 @@ import commands
 import tempfile
 
 from glob import glob
+from datetime import datetime
+from optparse import OptionParser
+
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.units import cm
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.pagesizes import A4 as pagesize
 
-YEAR = 2008
-OUTPUT = 'output.pdf'
-OVERSAMPLE = 3
+options = None
+FILETYPES = ('gif', 'jpg', 'jpeg', 'png')
+
+def main():
+    usage = """ %prog [options]
+
+    Generates a simple PDF calendar for the specified year, one page per month,
+    optionally using images in the specified directory.
+
+    To use images, use the --dir argument to specify a directory (or leave empty
+    to use the current directory) with the structure:
+
+        |-- 01
+        |   |-- s6000001.jpg
+        |-- 02
+        |   |-- s6000002.jpg
+        |   \-- s6000003.jpg
+        |-- 03
+        |   \-- s6000004.jpg
+        etc.
+
+    Images will be included on the appropriate month's page. If multiple images
+    for a month exist, they are tiled horizontally.
+    """.rstrip()
+
+    parser = OptionParser(usage=usage)
+    parser.add_option('-d', '--dir', dest='dir', help="Directory to source images (Default: '.')",
+        metavar='DIR', default='./')
+    parser.add_option('-y', '--year', dest='year', help='Year of calendar (Default: next year)',
+        metavar='YEAR', default=int(datetime.now().strftime("%Y")) + 1)
+    parser.add_option('-o', '--output', dest='output', help='Output file (Default: calendar.pdf)',
+        metavar='FILE', default='calendar.pdf')
+    parser.add_option('-q', '--quiet', dest='verbose', default=True,
+        action='store_false', help="Don't print status messages to STDERR")
+
+    global options
+    options, args = parser.parse_args()
+
+    try:
+        images = find_images()
+        return generate_calendar(images)
+    except KeyboardInterrupt:
+        pass
+
+    return 1
 
 def find_images():
     images = [[] for x in range(12)]
     for month in range(1, 13):
-        for filetype in ('gif', 'jpg', 'jpeg', 'png'):
-            images[month - 1].extend(glob(os.path.join('images', '%.2d' % month, '*.%s' % filetype)))
+        for filetype in FILETYPES:
+            images[month - 1].extend(glob(os.path.join(options.dir, '%.2d' % month, '*.%s' % filetype)))
     return images
 
 def generate_calendar(images):
-    pdf = Canvas(OUTPUT, pagesize=pagesize)
+    pdf = Canvas(options.output, pagesize=pagesize)
     pdf.setStrokeColorRGB(1, 0, 0)
 
+    def add_days(month):
+        pdf.setFont('Helvetica', 22)
+
+        BASE_X = 3 * cm
+        BASE_Y = 11.5 * cm
+        WIDTH_X = 2.7 * cm
+        WIDTH_Y = 2 * cm
+
+        for day in range(7):
+            pdf.drawRightString(
+                BASE_X + (day * WIDTH_X),
+                BASE_Y,
+                '%s' % calendar.day_abbr[day][0])
+
+        for row_num, row in enumerate(calendar.monthcalendar(options.year, month + 1)):
+            for col_num, col in enumerate(row):
+                if not col: continue
+                pdf.drawRightString(
+                    BASE_X + (col_num * WIDTH_X),
+                    BASE_Y - ((row_num + 1) * WIDTH_Y),
+                    '%d' % col)
+
+    def add_title(month):
+        pdf.setFont('Helvetica', 32)
+        pdf.drawCentredString(
+            pagesize[0] / 2,
+            pagesize[1] - (3 * cm),
+            '%s %d' % (calendar.month_name[month + 1], options.year))
+
+    def add_images(images):
+        BASE_Y = 14 * cm
+        MARGIN_X = 2 * cm
+        MAX_WIDTH = pagesize[0] - (2 * MARGIN_X)
+        MAX_HEIGHT = 11 * cm
+
+        OVERSAMPLE = 3
+
+        for img_num, filename in enumerate(images):
+            max_width = float(MAX_WIDTH) / float(len(images))
+            max_height = float(MAX_HEIGHT)
+
+            # Use ImageMagick instead of reportlab/PIL as it's *much* quicker.
+            _, temp = tempfile.mkstemp()
+            commands.getstatusoutput('convert "%s" -resize %dx%d "%s"'
+                % (filename, max_width * float(OVERSAMPLE), max_height * float(OVERSAMPLE), temp))
+
+            img = ImageReader(temp)
+            width, height = map(lambda x: float(x) / float(OVERSAMPLE), img.getSize())
+            pos_x = MARGIN_X + (max_width * img_num) + ((max_width - width) / 2.0)
+            pos_y = BASE_Y + ((max_height - height) / 2.0)
+
+            pdf.drawImage(img, pos_x, pos_y, width, height)
+
     for month in range(12):
-        print >>sys.stderr, 'Generating %s...' % calendar.month_name[month + 1],
-        add_days(pdf, month)
-        add_title(pdf, month)
-        add_images(pdf, images[month])
+        if options.verbose:
+            print >>sys.stderr, 'Generating %s...' % calendar.month_name[month + 1],
+        add_days(month)
+        add_title(month)
+        add_images(images[month])
         pdf.showPage()
-        print >>sys.stderr, 'Done.'
+        if options.verbose:
+            print >>sys.stderr, 'Done.'
 
     pdf.save()
 
-def add_days(pdf, month):
-    pdf.setFont('Helvetica', 22)
-
-    BASE_X = 3 * cm
-    BASE_Y = 11.5 * cm
-    WIDTH_X = 2.7 * cm
-    WIDTH_Y = 2 * cm
-
-    for day in range(7):
-        pdf.drawRightString(
-            BASE_X + (day * WIDTH_X),
-            BASE_Y,
-            '%s' % calendar.day_abbr[day][0])
-
-    for row_num, row in enumerate(calendar.monthcalendar(YEAR, month + 1)):
-        for col_num, col in enumerate(row):
-            if not col: continue
-            pdf.drawRightString(
-                BASE_X + (col_num * WIDTH_X),
-                BASE_Y - ((row_num + 1) * WIDTH_Y),
-                '%d' % col)
-
-def add_title(pdf, month):
-    pdf.setFont('Helvetica', 32)
-    pdf.drawCentredString(
-        pagesize[0] / 2,
-        pagesize[1] - (3 * cm),
-        '%s %d' % (calendar.month_name[month + 1], YEAR))
-
-def add_images(pdf, images):
-    BASE_Y = 14 * cm
-    MARGIN_X = 2 * cm
-    MAX_WIDTH = pagesize[0] - (2 * MARGIN_X)
-    MAX_HEIGHT = 11 * cm
-
-    for img_num, filename in enumerate(images):
-        max_width = float(MAX_WIDTH) / float(len(images))
-        max_height = float(MAX_HEIGHT)
-
-        _, temp = tempfile.mkstemp()
-        commands.getstatusoutput('convert "%s" -resize %dx%d "%s"' 
-            % (filename, max_width * float(OVERSAMPLE), max_height * float(OVERSAMPLE), temp))
-
-        img = ImageReader(temp)
-        width, height = map(lambda x: float(x) / float(OVERSAMPLE), img.getSize())
-        pos_x = MARGIN_X + (max_width * img_num) + ((max_width - width) / 2.0)
-        pos_y = BASE_Y + ((max_height - height) / 2.0)
-
-        pdf.drawImage(img, pos_x, pos_y, width, height)
-
-
 if __name__ == '__main__':
-    images = find_images()
-    generate_calendar(images)
+    sys.exit(main())
