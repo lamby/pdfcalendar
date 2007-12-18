@@ -149,13 +149,13 @@ def generate_calendar(images):
 
     for month in range(12):
         if options.verbose:
-            print >>sys.stderr, 'Generating %s...' % calendar.month_name[month + 1],
+            print >>sys.stderr, '%s...' % calendar.month_name[month + 1],
         add_days(month)
         add_title(month)
         add_images(images[month])
         pdf.showPage()
         if options.verbose:
-            print >>sys.stderr, 'Done.'
+            print >>sys.stderr, 'OK.'
 
     pdf.save()
 
