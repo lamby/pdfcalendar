@@ -38,6 +38,7 @@ import locale
 locale.setlocale(locale.LC_ALL, '');
 
 options = None
+week_number = 1
 FILETYPES = ('gif', 'jpg', 'jpeg', 'png')
 
 def main():
@@ -67,6 +68,8 @@ def main():
         metavar='DIR', default='./')
     parser.add_option('-y', '--year', dest='year', help='Year of calendar (Default: next year)',
         metavar='YEAR', default=int(datetime.now().strftime("%Y")) + 1)
+    parser.add_option('-w', '--week-numbers', dest='week_numbers', default=False,
+        action='store_true', help="Show week numbers")
     parser.add_option('-o', '--output', dest='output', help='Output file (Default: calendar.pdf)',
         metavar='FILE', default='calendar.pdf')
     parser.add_option('-q', '--quiet', dest='verbose', default=True,
@@ -102,19 +105,37 @@ def generate_calendar(images):
         WIDTH_X = 2.7 * cm
         WIDTH_Y = 2 * cm
 
+        if options.week_numbers:
+            BASE_X += 1 * cm
+            WIDTH_X -= 0.1 * cm
+
         for day in range(7):
             pdf.drawRightString(
                 BASE_X + (day * WIDTH_X),
                 BASE_Y,
                 '%s' % calendar.day_abbr[day][0].capitalize())
 
+        global week_number
+
         for row_num, row in enumerate(calendar.monthcalendar(options.year, month + 1)):
+
+            if options.week_numbers:
+                pdf.setFont('Helvetica', 10)
+                pdf.drawString(
+                    BASE_X - (WIDTH_X),
+                    BASE_Y - ((row_num + 1) * WIDTH_Y),
+                    'Week %d' % week_number)
+
             for col_num, col in enumerate(row):
                 if not col: continue
+
+                pdf.setFont('Helvetica', 22)
+
                 pdf.drawRightString(
                     BASE_X + (col_num * WIDTH_X),
                     BASE_Y - ((row_num + 1) * WIDTH_Y),
                     '%d' % col)
+                if col_num == 6: week_number += 1
 
     def add_title(month):
         pdf.setFont('Helvetica', 32)
