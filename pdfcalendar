@@ -100,8 +100,8 @@ def generate_calendar(images):
     def add_days(month):
         pdf.setFont('Helvetica', 22)
 
-        BASE_X = 3 * cm
-        BASE_Y = 11.5 * cm
+        BASE_X = 2.7 * cm
+        BASE_Y = 13 * cm
         WIDTH_X = 2.7 * cm
         WIDTH_Y = 2 * cm
 
