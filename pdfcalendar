@@ -68,8 +68,8 @@ def main():
         metavar='DIR', default='./')
     parser.add_option('-y', '--year', dest='year', help='Year of calendar (Default: next year)',
         metavar='YEAR', default=int(datetime.now().strftime("%Y")) + 1)
-    parser.add_option('-w', '--week-numbers', dest='week_numbers', default=False,
-        action='store_true', help="Show week numbers")
+    parser.add_option('-w', '--week-numbers', dest='week_numbers', default='none',
+        metavar='TYPE', help="Show week numbers [short|long|none] (Default: none)")
     parser.add_option('-o', '--output', dest='output', help='Output file (Default: calendar.pdf)',
         metavar='FILE', default='calendar.pdf')
     parser.add_option('-q', '--quiet', dest='verbose', default=True,
@@ -77,6 +77,12 @@ def main():
 
     global options
     options, args = parser.parse_args()
+
+    if options.week_numbers.lower() not in ('short', 'long', 'none'):
+        raise parser.error("Invalid --week-numbers option '%s', expected one of short, long, none" % options.week_numbers)
+
+    if options.week_numbers.lower() == "none":
+        options.week_numbers = False
 
     try:
         images = find_images()
@@ -120,11 +126,16 @@ def generate_calendar(images):
         for row_num, row in enumerate(calendar.monthcalendar(int(options.year), month + 1)):
 
             if options.week_numbers:
+                text = {
+                    'long' : 'Week %d',
+                    'short' : '%d',
+                }[options.week_numbers] % week_number
+
                 pdf.setFont('Helvetica', 10)
                 pdf.drawString(
                     BASE_X - (WIDTH_X),
                     BASE_Y - ((row_num + 1) * WIDTH_Y),
-                    'Week %d' % week_number)
+                    text)
 
             for col_num, col in enumerate(row):
                 if not col: continue
