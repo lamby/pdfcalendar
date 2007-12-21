@@ -97,10 +97,17 @@ def main():
     return 1
 
 def find_images():
+    def my_glob(path, extension):
+        try:
+            return [os.path.join(path, x) for x in os.listdir(path)
+                if x.lower().endswith('.%s' % extension)]
+        except os.error:
+            return []
+
     images = [[] for x in range(12)]
     for month in range(1, 13):
         for filetype in FILETYPES:
-            images[month - 1].extend(glob(os.path.join(options.dir, '%.2d' % month, '*.%s' % filetype)))
+            images[month - 1].extend(my_glob(os.path.join(options.dir, '%.2d' % month), filetype))
     return images
 
 def generate_calendar(images):
