@@ -117,7 +117,7 @@ def generate_calendar(images):
 
         global week_number
 
-        for row_num, row in enumerate(calendar.monthcalendar(options.year, month + 1)):
+        for row_num, row in enumerate(calendar.monthcalendar(int(options.year), month + 1)):
 
             if options.week_numbers:
                 pdf.setFont('Helvetica', 10)
@@ -142,7 +142,7 @@ def generate_calendar(images):
         pdf.drawCentredString(
             pagesize[0] / 2,
             pagesize[1] - (3 * cm),
-            '%s %d' % (calendar.month_name[month + 1].capitalize(), options.year))
+            '%s %d' % (calendar.month_name[month + 1].capitalize(), int(options.year)))
 
     def add_images(images):
         BASE_Y = 14 * cm
