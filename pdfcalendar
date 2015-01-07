@@ -34,7 +34,7 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4 as pagesize
 
 import locale
-locale.setlocale(locale.LC_ALL, '');
+locale.setlocale(locale.LC_ALL, '')
 
 options = None
 week_number = 1
