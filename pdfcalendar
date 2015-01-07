@@ -79,7 +79,7 @@ def main():
         action='store_false', help="Don't print status messages to STDERR")
 
     global options
-    options, args = parser.parse_args()
+    options, _ = parser.parse_args()
 
     if options.week_numbers.lower() not in ('short', 'long', 'none'):
         raise parser.error("Invalid --week-numbers option '%s', expected one of short, long, none" % options.week_numbers)
