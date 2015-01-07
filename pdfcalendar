@@ -23,10 +23,9 @@ import sys
 import os.path
 import calendar
 import commands
+import datetime
+import optparse
 import tempfile
-
-from datetime import datetime
-from optparse import OptionParser
 
 from reportlab.lib.units import cm
 from reportlab.lib.utils import ImageReader
@@ -62,11 +61,11 @@ def main():
     for a month exist, they are tiled horizontally.
     """.rstrip()
 
-    parser = OptionParser(usage=usage)
+    parser = optparse.OptionParser(usage=usage)
     parser.add_option('-d', '--dir', dest='dir', help="Directory to source images (Default: '.')",
         metavar='DIR', default='./')
     parser.add_option('-y', '--year', dest='year', help='Year of calendar (Default: next year)',
-        metavar='YEAR', default=int(datetime.now().strftime("%Y")) + 1)
+        metavar='YEAR', default=int(datetime.datetime.now().strftime("%Y")) + 1)
     parser.add_option('-w', '--week-numbers', dest='week_numbers', default='none',
         metavar='TYPE', help="Show week numbers [short|long|none] (Default: none)")
     parser.add_option('-t', '--header', dest='header', help='Add header HEADER (Default: empty)',
