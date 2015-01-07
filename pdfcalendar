@@ -195,8 +195,13 @@ def generate_calendar(images):
 
             # Use ImageMagick instead of reportlab/PIL as it's *much* quicker.
             _, temp = tempfile.mkstemp()
-            commands.getstatusoutput('convert "%s" -resize %dx%d "%s"'
-                % (filename, max_width * float(OVERSAMPLE), max_height * float(OVERSAMPLE), temp))
+
+            commands.getstatusoutput('convert "%s" -resize %dx%d "%s"' % (
+                filename,
+                max_width * float(OVERSAMPLE),
+                max_height * float(OVERSAMPLE),
+                temp,
+            ))
 
             img = ImageReader(temp)
             width, height = map(lambda x: float(x) / float(OVERSAMPLE), img.getSize())
