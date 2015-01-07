@@ -18,20 +18,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
 import os
+import sys
 import os.path
 import calendar
 import commands
 import tempfile
 
-from glob import glob
 from datetime import datetime
 from optparse import OptionParser
 
-from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.units import cm
 from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4 as pagesize
 
 import locale
