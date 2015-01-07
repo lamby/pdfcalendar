@@ -217,7 +217,7 @@ def generate_calendar(images):
             ))
 
             img = ImageReader(temp)
-            width, height = map(lambda x: float(x) / float(OVERSAMPLE), img.getSize())
+            width, height = [float(x) / float(OVERSAMPLE) for x in img.getSize()]
             pos_x = MARGIN_X + (max_width * img_num) + ((max_width - width) / 2.0)
             pos_y = BASE_Y + ((max_height - height) / 2.0)
 
