@@ -103,7 +103,7 @@ def find_images():
         except os.error:
             return []
 
-    images = [[] for x in range(12)]
+    images = [[] for _ in range(12)]
     for month in range(1, 13):
         for filetype in FILETYPES:
             images[month - 1].extend(my_glob(os.path.join(
