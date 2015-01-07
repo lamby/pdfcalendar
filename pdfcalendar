@@ -30,7 +30,7 @@ import tempfile
 from reportlab.lib.units import cm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
-from reportlab.lib.pagesizes import A4 as pagesize
+from reportlab.lib.PAGESIZEs import A4 as PAGESIZE
 
 import locale
 locale.setlocale(locale.LC_ALL, '')
@@ -112,7 +112,7 @@ def find_images():
     return images
 
 def generate_calendar(images):
-    pdf = Canvas(options.output, pagesize=pagesize)
+    pdf = Canvas(options.output, PAGESIZE=PAGESIZE)
     pdf.setStrokeColorRGB(1, 0, 0)
 
     def add_days(month):
@@ -167,8 +167,8 @@ def generate_calendar(images):
     def add_title(month):
         pdf.setFont('Helvetica', 32)
         pdf.drawCentredString(
-            pagesize[0] / 2,
-            pagesize[1] - (3 * cm),
+            PAGESIZE[0] / 2,
+            PAGESIZE[1] - (3 * cm),
             '%s %d' % (
                 calendar.month_name[month + 1].capitalize(),
                 int(options.year),
@@ -180,14 +180,14 @@ def generate_calendar(images):
 
         if options.header:
             pdf.drawCentredString(
-                pagesize[0] / 2,
-                pagesize[1] - (1 * cm),
+                PAGESIZE[0] / 2,
+                PAGESIZE[1] - (1 * cm),
                 options.header,
             )
 
         if options.footer:
             pdf.drawCentredString(
-                pagesize[0] / 2,
+                PAGESIZE[0] / 2,
                 0.5 * cm,
                 options.footer,
             )
@@ -195,7 +195,7 @@ def generate_calendar(images):
     def add_images(images):
         BASE_Y = 14 * cm
         MARGIN_X = 2 * cm
-        MAX_WIDTH = pagesize[0] - (2 * MARGIN_X)
+        MAX_WIDTH = PAGESIZE[0] - (2 * MARGIN_X)
         MAX_HEIGHT = 11 * cm
 
         OVERSAMPLE = 3
